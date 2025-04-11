@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crash Course with Claire: Quaternions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Inter&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0c2a;
+      color: #f0f0f0;
+      line-height: 1.7;
+    }
+    header {
+      background-color: #1e1f3b;
+      padding: 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.75rem;
+      margin-bottom: 0.5rem;
+      color: #ffffff;
+    }
+    header p {
+      font-style: italic;
+      color: #bbb;
+    }
+    main {
+      max-width: 900px;
+      margin: auto;
+      padding: 2rem;
+    }
+    h2, h3 {
+      color: #98c9ff;
+      margin-top: 2rem;
+    }
+    p, li, pre, code {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    ul, ol {
+      margin-left: 1.5rem;
+    }
+    blockquote {
+      border-left: 4px solid #444;
+      padding-left: 1rem;
+      color: #ccc;
+      font-style: italic;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background-color: #1e1f3b;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Crash Course with Claire: Quaternions</h1>
+  </header>
+
+  <main>
+    <pre>
+      Today’s Crash Course with Claire is on: Quaternions. 
+      If you are reading this without the presentation, you will need: 2 small books, 1 large book, 2 belts, a few pieces of paper, a pen, scissors, and a fair few minutes of your time. 
+      
+      Why should you care? 
+      First of all, if you don’t already, why should you care about quaternions? Mainly, they are a really cool part of math, but they are also used in our CIM3D code. 
+      
+      Why are they used?
+      There are many ways to represent the movement of 3D objects in graphics, many far more intuitive to our minds than quaternions. As with most things in life, there is no cut-and-dry solution: quaternions are not simply ‘better’ than, for instance, matrix transformations, or Euler angles. However, Unity doesn’t make us suffer through them for nothing, and their use does address two key drawbacks of other methods:
+      1.	Matrix redundancy – space and computational effort, which in circumstances where processors are more limited (e.g. our servo drives) this can become a significant restriction. 
+      2.	Combining rotations, Gimbal Lock – where two rotational axes become aligned (locked), effectively losing a degree of rotation and resulting in strange and unpredictable ‘roundabout’ behaviour, like the arm below. 
+      
+       <img src=""
+      
+      Building an understanding of Quaternions 
+      Quaternions are a 4D number system, an extension of complex numbers. They were discovered in the search for generalised complex numbers that might simplify 3D space the same way holomorphic functions managed to prove a simple representation of the Laplace equation (Penrose, 2004) . With no success finding a useful, i.e. retains the nice algebraic properties of complex numbers (Lisitsa, 2024), algebra with 2 imaginary and one real axis, it was William Rowan Hamilton, a 19th century mathematician, who made a breakthrough. Adding not one, but two more axes (four total) gave an algebra that satisfied “all the normal laws of algebra bar one” (Penrose, 2004) – multiplicative commutativity. We will approach this in more detail later. 
+      
+      As an aside – it turns out that any finite-dimension associative division algebra over the real numbers is isomorphic to either the reals (R), the complex numbers (C), or the quaternions (H), as proven by Frobenius in 1877. In simpler and much more meaningful terms, this means that all ‘useful’ algebras that satisfy normal algebraic laws are either one of those 3 number systems, or some mapping of them. In even less words, nothing else exists (Lisitsa, 2024).
+      
+      Through my research over the past month, I’ve found that the best way to understand quaternions is to appreciate them, the best way to appreciate them is to understand them, and the best way to understand them is to gain some sort of visual intuition. For this reason, I’ve left the math-heavy sections until later and will attempt to build this intuition beginning from lower dimensions. Full and complete credit to these 3 Blue 1 Brown videos (Visualizing quaternions (4d numbers) with stereographic projection, Cupitt's Estate & CommBank Business Lending, Visualizing quaternions, an explorable video series), The Road to Reality by Roger Penrose, and this blog post ((Yet another) Introduction to quaternions | lisyarus blog). My approach is an amalgamation of their fantastic works. 
+      
+      Gaining an Intuition (3B1B)
+      How could one describe two-dimensional movement, i.e. transformations through some combination of scaling and rotation, in a one-dimensional way? Scaling is straightforward: the concept of ‘scaling’ an object would not be so out of reach of understanding to someone whose whole world only consisted of 1 dimension. ‘Scaling’ a line of length 1 by a factor of 2 gives us a line of length 2. 
+      
+      Rotation is not so straightforward. Think about it for a moment – how might you explain the way an object changes without relying on a grasp of the x-y plane? My first and only idea was something vague about how ‘rotating’ a line by 90° makes it appear as a point. It feels a bit like rotation must be intrinsically 2-dimensional. However, there is a way – with something called Stereographic Projection. Since, in the complex plane, pure rotation (no scaling) of an object corresponds to multiplying by some number on the unit circle, I am going to demonstrate the stereographic projection of the unit circle onto the linear plane (in this case the y axis). It is important to note that this type of explanation only covers a small subset of all the points that exist within the 2D world, in this case the unit vectors. 
+      
+       
+      
+      Focus on the point -1 of this unit circle. To help you understand, I also suggest folding your piece of paper into a long rectangle. Mark the four axis intercepts, and join the ends to make a circle. 
+      
+       
+       
+      
+      Imagine many lines going from that point, radiating outwards to infinity at different angles such that each point on the circle is connected by exactly one line to the point -1. The point where each line intersects the y axis is the projection of the corresponding unit circle point on this axis. Straightening your piece of paper into a vertical line directly represents this projection. 
+      
+      Importantly:
+      -	The point 1 is projected onto the origin.
+      -	+/- i stay where they are.
+      -	-1 exists at +/- infinity.
+      -	The righthand-side of the circle is projected between positive and negative i. 
+      -	The lefthand-side of the circle gets projected above and below pos/neg i.
+      
+       
+      
+      Notice that, in the linear projection of the circle, the points appear to be increasingly further and further apart in distance as we approach -1. This is not actually the case, and we know this by the fact that, contrastingly, each point on the unit circle is equidistant from each of its neighbours. This will be important later. 
+      
+      When we rotate the circle clockwise by 90 degrees, the projection of each point moves as if on a conveyor belt:
+      -	1  +i
+      -	+i  infinity / -1
+      -	-1  -i 
+      -	-i  origin / 1
+      
+      Below is a useful clip to visualise this. You can also replicate with your piece of paper by reconnecting the -1 ends and cutting the paper at the point i. 
+        
+      
+      So now we have an understandable way to explain both rotation and scaling in 1-dimension. 
+      
+      Exercise: how would we explain how a circle is scaled down and then rotated? 
+      Answer: Each of the major points we followed above would ‘move’ half as much.
+      
+      Let’s now move on to 3-dimensional transformations. How can we explain them in 2D space? Once again, scaling, rotation and translation along the x axis, y axis, or x-y plane are easy. Where things get complicated is when the z axis is involved. How would we describe the rotation of a point on a sphere? 
+      
+      Let’s start by orienting the axes of our visualisation in a way that will help the transition to quaternions: i behaves as x, j as y, and the real numbers perpendicular to both where z would be. This is just for the sake of visualisation: remember, a useful algebra of this dimension doesn’t actually exist. 
+      
+      Picture a unit sphere centred at the origin, intersecting +/- i, +/- j, and +/-1. The same way we did with the unit circle before, imagine many lines from the point -1 to each point on the sphere, and a horizontal plane through the centre in the i-j space. 
+      
+       
+      
+      Where each line intersects the plane is the stereographic projection of its respective point. 
+      
+      -	All the points/lines/curves of the i-j unit circle stay where they are (the equator).
+      -	The top half (northern hemisphere) gets projected inside the unit circle.
+      -	The bottom half (southern hemisphere) gets projected outside the unit circle. 
+      
+      The point -1 is off in all directions towards infinity. The best way to think about this is that no matter which direction you walk away from the north pole, you’re always approaching the south pole. As with 2D  1D, the points appear to be getting spaced farther and farther apart, but we know from our understanding of a sphere in 3D that this is not truly the case, and only the result of the stereographic projection. 
+      
+       
+      
+      When the sphere is rotated in 3D, the positions of the poles and equator change based on where the line from -1 to the point at that location would now intersect the i-j plane. This is quite a bit more difficult to picture, so I have a short clip from the 3Blue 1Brown video that should help. 
+      
+       
+      
+      Now we have arrived to us. How can we conceptualise 4D movements in our 3-dimensional minds? First, a brief return to mathematics.
+      
+      Hamilton’s 4-dimensional vector space is composed of 3 orthogonal imaginary axes (i, j, k), with the real axis perpendicular to all three somehow. A quaternion can be defined completely by the equation q = t (the real part) + u*i + v*j + w*k, where u, v, w are in R and i²= j²= k²= -1 (all imaginary units are independent roots of -1). Any quaternion can hence be “expressed uniquely as a sum of real multiples of these basis elements” (Penrose, 2004) the same way that:
+      -	A rotation or orientation in 3D space can be expressed uniquely, using Euler angles, as the composition of three consecutive elemental rotations (elemental = about a single/individual axis). 
+      -	A vector in 2D space can be expressed by a sum of the real element and a real multiple of the imaginary element (v = a + b*i). 
+      
+      So, how does a quaternion get projected into 3D space in a way that we can understand it? Using the same stereographic projection, we can visualise how a unit hypersphere (like a unit sphere/unit circle) gets projected. Remember, to stick to pure rotation this will focus only on the quaternions of length 1. We can’t conceptualise the original hypersphere, so trying to picture ‘drawing a line from -1 on the real axis’, when said real axis is in a fourth dimension, isn’t exactly within our perception. However, understanding the logical projection can give some insight into how this 4D space might work. 
+      
+      This hypersphere intersects all four axes at the points (1, 0, 0, 0), (-1, 0, 0, 0), (0, i, 0, 0), (0, -i, 0, 0), (0, 0, j, 0), (0, 0, -j, 0), (0, 0, 0, k), (0, 0, 0, -k). Under the projection, the point [1] is projected onto the origin – and in the same way that +/-i didn’t move from 2D1D, and the i-j unit circle didn’t move for 3D2D, in our 4D3D projection we see an unaltered unit sphere centred at the origin, passing through the +/- point of each of the three imaginary axes. 
+      
+       
+      
+      The above sphere “represents all of the unit quaternions whose real part is zero” i.e., unit vectors (3B1B), and is the only unaltered part of the hypersphere after projection. Unit quaternions with positive real parts 0 – 1 get projected inside the sphere, closer to the origin/point 1, while those with negative real parts -1 – 0 are projected outside the sphere, with -1 off at infinity reachable in any direction. Note again that this ‘closeness’ to 1 is a result of the projection and not a true representation of the points in 4D space; the same with all the previous stereographic projections, every point is truly of the “same magnitude and distance from the number 0” (3B1B), a point which is not visible after projection. 
+      
+      The following statements will now hopefully have more meaning to you after a journey through stereographic projections.
+      -	A line passing through the origin represents a circle passing through that axis, 1, and -1 (e.g., i-real axis). 
+      -	A plane, and corresponding circle across two axes (e.g., i-j unit circle) represents a sphere.
+      
+      The Key Mathematics of Quaternions – multiplication, non-commutativity and spinors. 
+      
+      The most unique (and defining) characteristic of Hamilton’s quaternions is the non-commutativity of multiplication. 
+      
+      Recall from the days of linear algebra  that multiplication by i can be thought of as “rotating through a right angle about the origin in a positive sense” (Penrose, 2004). In other words, the result of multiplying any number by i is simply a point rotated exactly 90° about the origin from the original. In the same vein (just briefly), once again, the reason complex numbers are so amazing is because they’re so simple: if you have a vector and want to know what that vector becomes when rotated about the origin by 30°, you just have to multiply it by the unit vector 30° from the horizontal axis. 
+      
+      It doesn’t feel unreasonable  to assume that Hamilton’s 3 imaginary axes will behave in the same way the complex number i does: multiplying by the unit quaternion j should result in a 90° rotation in 3 dimensions in the positive sense about the j-axis, so on and so forth. Further to this, recall the ‘right-hand rule’ for vector cross-products: given k is orthogonal to both i and j, it is also reasonable that multiplying unit quaternions i and j (which consist of a vector part) should give this third orthogonal unit quaternion k. 
+      
+      Let’s see if this works in our real 3-dimensional space. Place a book face up in front of you, as if you’re about to open it up and read it. 
+      
+       
+      
+      Hold your right hand  up with your thumb stretched up as the k-axis, pointer directed away from you as the j-axis, and middle finger pointing to the left as the i-axis. Taking a single rotation to be 90° anticlockwise, rotate the book about the i and then j axes. You’ll end up with the book page-spine up, in a configuration that is not any multiple of a rotation about the k-axis. 
+      
+       
+      
+      How could we change the rotation to maintain this convention without undermining the meaning of a rotation? 
+      
+      Return your book to the zero position and take a single rotation to be 180° anticlockwise. Now, when you execute the same rotations as before, you will end up with the book face up rotated 180° about the k axis, which is exactly what we wanted. 
+      
+       
+      
+      However, defining a rotation this way would mean that applying a rotation twice about the same axis gives us the original configuration; and i² would now equal 1 instead of -1, a clear violation of established mathematics. This is where we introduce the “essential mathematical notion” (Penrose, 2004) of a spinor. 
+      
+      A spinor is an object that turns into its negative under a 360° rotation (like the hypersphere we will see later). This indicates 720° represents a full rotation back to original state, which is how 4D space behaves. To visualise this in 3-dimensions, we will use the ‘belt trick’. 
+      
+      Shut the end of a belt in the pages of the book in front of you (left image). 
+      
+       
+      
+      Put the other end of the belt under a heavy object, so that when the belt twists it retains them. The twist of the belt after applying two rotations about the j axis (equivalent to 2π) cannot be undone without rotating the book again (right image). 
+      
+       
+      
+      Conversely, applying another two rotations (4π) the twist can be undone by looping the belt over the book. 
+      
+       
+      
+      Even (as opposed to odd) multiples of 2π rotations are equivalent to zero rotation – “for every ordinary book configuration, there will be precisely two inequivalent spinorial book configurations, and we deem one to be the negative of the other” (Penrose, 2004). The clip below demonstrates how this concept of ‘negative’ configurations applies to the unit sphere projection of a quaternion when multiplied by the unit quaternion i four successive times. 
+      
+       
+      
+      With spinors and a slightly different notion of a singular rotation, we now have a way to represent quaternion rotations while preserving i² = -1 and ij = k. Observe with your simulated spinor: applying a rotation about i, then about j, gives us a configuration that can be undone by a single rotation about k. Except it doesn’t – the ‘undoing’ rotation is clockwise instead of anticlockwise, meaning ij = -k!
+      
+      In order to maintain ij=k, Hamilton defined a special difference in the way that multiplication works. Instead of ij meaning “rotate by i, then by j”, we define it to mean “apply j to i” AKA “do j first and i second”. If we want to represent “rotate by i then by j” we would write ji. Since ij and ji now represent entirely different successions of rotation, we can see why multiplication is not commutative. Prove it to yourself: set up two spinor books, applying ji to one and ij to the other. You will clearly see that the belt twists we get are indeed different. Now we have ij=k!
+      
+      Connecting Maths with Intuition (well, attempting to) 
+      Pure rotation of hypersphere, i.e. multiplication of a quaternion by a unit quaternion, can be thought of as “two 2D rotations happening perpendicular to and in sync with each other” (3B1B). The best way to visualise this is to use an axis as the unit quaternion and represent the other quaternion as a point (here, the arbitrary point -j), and observe the way the remaining two imaginary axes move at the same instant to produce the full rotation. See the below representation, remembering from our stereographic projections that each axis is the projection of a circle, each plane or circle the projection of a sphere. In this case, the i-axis represents the circle through i and -i perpendicular to and passing through the point -1 on the real axis, and the j-k unit circle represents the section of the sphere projected as a plane that is invariant under the projection. 
+      
+       
+      
+      As it turns out, there is (in my opinion) a far easier and more intuitive way to think about the multiplicative rules for quaternions that doubles as a useful rule for visualising rotations: introducing the notions of right and left multiplication. For a quaternion rotation ijk in the unit quaternion sense of the variables, what we have so far makes sense: rotation about k followed by j followed by i. But consider the following scenario: jbk, where b is some arbitrary quaternion. What does it mean to rotate ‘about’ that quaternion? Indeed, we can take advantage of the fact that every quaternion is a unique combination of the four axes, and break it down into its separate units, but this is rather tedious. Right and left multiplication give us a much nicer way of doing this. 
+      
+      Let’s start by defining an arbitrary quaternion rotation qp, remembering that this represents q acting on p. Let p be the point (0, 0, j, 0) aka +j, q be the unit quaternion i, and the angle be 90° (half a ‘rotation’ in the quaternion sense). As we remember from 2D  1D projections, i will go off to infinity, 1 to i, -i to 1, and -1 to -i. At the same time, a second rotation occurs, which can be observed using the j-k unit circle. Now, the direction in which it rotates corresponds to the way we chose to interpret the original question. Since i is the action, we are multiplying from the left to the right, so we use our right hand for the rule. Point your right thumb in the direction of the movement of the i-axis (aka towards you) and curl your remaining fingers. The direction of your fingers is the direction of rotation of the j-k axis! 
+      
+      Similarly, if we had decided to use the ‘normal’ order of multiplication i.e. from the right to the left, we would point our left thumb in the direction of the acting axis and our fingers would curl in the direction of the remaining axes’ rotation. So pq  i*(0, 0, j, 0) gives the same movement of the i/real axis, but rotation of the j-k unit circle in the opposite direction. 
+      
+      Exercise – what happens to the point p under the following transformation: ipi?
+      Answer: reversed but no rotation since they cancel out. 
+      
+      Application to 3D graphics
+      As discussed earlier, the complex plane gives a very tidy way of rotating arbitrary points: the point (4+1i) rotated by 30deg about the origin is simply calculated by multiplying it by (cos(30) + sin(30)i), the complex number 30deg off the x axis with magnitude 1. 
+      
+      The way quaternions are used for the rotation of a 3D object about an axis is relatively similar. Pick up your 3D-object. Say we want to rotate it by 90 degrees anticlockwise about the i-axis (using the typical well-known right-hand rule for axis definitions). Pick an arbitrary point – say, the top right corner – and label it p. Connecting this to our new right- and left-hand rules, we want our fingers to curl in the direction of the desired rotation (to the right), and for this we can use our right hand with our thumb pointing towards us. Since we are using out right hand, we need to be multiplying from left to right, giving us ip. 
+      
+      Unfortunately, it is not that easy. With i as our reference axis, the rotation we just described will be of the j-k unit circle; you will be rightly pointing out, ‘what about the second, simultaneous and orthogonal rotation in the i-real axis?’. ip gives us the desired rotation in one respect, but our object will be in some strange, stretched orientation beyond the capabilities of our perception. In other words, it will look quite wrong. 
+      
+      What we need is some way to undo the undesired rotation whilst preserving the desired one: we need to apply another rotation such that the i-real axis rotates in the opposite direction, but the j-k unit circle doesn’t. Pause for a moment and think about how you could do this using your hands (thumb pointing opposite, but fingers curling the same way) … 
+      
+      … 
+      
+      Hopefully you have noticed this is achievable using your left hand. If you hold up both your hands, right thumb towards you and left away from you, with side of the palms connected, it will be clear that the i-real rotation is undone but the j-k rotation is not. This corresponds to multiplying from the right to the left by whatever this ‘backwards lefthand’ represents mathematically. It turns out that this representation is actually the inverse, j-1, or more generally, q-1. The proof is left as an exercise for the reader :). 
+      
+      The particularly astute reader will have noticed I have so far neglected a particular point: since the j-k rotation for q-1 is in the same direction as for q, our object will be rotated by double our desired angle. This is true, and the reason why the angle we input is half of that which is desired. 
+      
+      
+      Hence, what we end up with is ipi-1, or more generally, QPQ-1, where:
+      Q = cos(desired angle / 2) + sin(desired angle / 2)*(ui+vj+wk), where u, v, w are in R. 
+      
+      And there we have it! 
+
+
+    </pre>
+  </main>
+
+  <footer>
+    Inspired by 3Blue1Brown, Penrose, and lisyarus blog | Written by Claire
+  </footer>
+</body>
+</html>
