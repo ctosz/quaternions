@@ -86,7 +86,7 @@
       1.	Matrix redundancy – space and computational effort, which in circumstances where processors are more limited (e.g. our servo drives) this can become a significant restriction. 
       2.	Combining rotations, Gimbal Lock – where two rotational axes become aligned (locked), effectively losing a degree of rotation and resulting in strange and unpredictable ‘roundabout’ behaviour, like the arm below. 
       
-       <img class="content-image" src="gimballock.gif"/>
+       <img src="gimballock.gif"/>
       
       <b>Building an understanding of Quaternions</b>
       Quaternions are a 4D number system, an extension of complex numbers. They were discovered in the search for generalised complex numbers that might simplify 3D space the same way holomorphic functions managed to prove a simple representation of the Laplace equation (Penrose, 2004)<sup><a href="#fn1" id="ref1">[1]</a></sup>. With no success finding a useful, i.e. retains the nice algebraic properties of complex numbers (Lisitsa, 2024), algebra with 2 imaginary and one real axis, it was William Rowan Hamilton, a 19th century mathematician, who made a breakthrough. Adding not one, but two more axes (four total) gave an algebra that satisfied “all the normal laws of algebra bar one” (Penrose, 2004) – multiplicative commutativity. We will approach this in more detail later. 
